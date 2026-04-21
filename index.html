@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Grand Hôtel Palace — F&B Operations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0A0805; font-family: 'Cormorant Garamond', Georgia, serif; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0A0805; }
+    ::-webkit-scrollbar-thumb { background: #C9A84C44; border-radius: 2px; }
+    textarea, input { font-family: 'Cormorant Garamond', Georgia, serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    const INITIAL_DATA = {
+      general: {
+        info: "Bienvenue dans l'espace F&B du Grand Hôtel Palace.\nPour toute urgence, contacter le F&B Manager au poste 101.\nRéunion d'équipe chaque lundi à 9h00 en salle de briefing.",
+        schedules: [
+          { name: "Semaine 17 — Équipe A", content: "Lun-Mer : Pierre, Camille, Sofiane\nJeu-Ven : Marie, Julien, Aïda\nWE : Paul, Léa, Omar" },
+          { name: "Semaine 17 — Équipe B", content: "Lun-Mer : Sarah, Nicolas, Fatou\nJeu-Ven : Tom, Inès, Karim\nWE : Chloé, Alexis, Nadia" },
+        ],
+        announcements: [
+          { title: "Formation allergie — 22 Avril", body: "Présence obligatoire pour tout le personnel F&B. Salle de conférence B, 14h." },
+          { title: "Nouveau logiciel de caisse", body: "Migration vers Symphony le 1er mai. Sessions de formation disponibles sur MyHotel." },
+        ]
+      },
+      departments: {
+        breakfast: {
+          label: "Petit Déjeuner", icon: "🥐", color: "#D4A853",
+          info: "Service de 6h30 à 10h30 en semaine, 7h00 à 11h00 le week-end.\nCapacité : 80 couverts. Responsable : Marie Duval — poste 210.",
+          floorPlan: null,
+          menu: { categories: [
+            { name: "Buffet Chaud", items: [
+              { name: "Œufs brouillés", desc: "Œufs fermiers, crème fraîche", allergens: ["Œufs","Lait"] },
+              { name: "Bacon grillé", desc: "Poitrine fumée croustillante", allergens: [] },
+              { name: "Saucisses chipolata", desc: "Porc Label Rouge", allergens: ["Gluten"] },
+            ]},
+            { name: "Viennoiseries", items: [
+              { name: "Croissant beurre", desc: "Livraison Lenôtre chaque matin", allergens: ["Gluten","Lait","Œufs"] },
+              { name: "Pain au chocolat", desc: "Chocolat Valrhona", allergens: ["Gluten","Lait","Œufs"] },
+              { name: "Brioche maison", desc: "Recette du chef pâtissier", allergens: ["Gluten","Lait","Œufs"] },
+            ]},
+            { name: "Fruits & Santé", items: [
+              { name: "Salade de fruits frais", desc: "Saisonnière, changée toutes les heures", allergens: [] },
+              { name: "Granola maison", desc: "Avoine, miel, fruits secs", allergens: ["Gluten","Fruits à coque"] },
+              { name: "Yaourt grec", desc: "Aromatisé ou nature", allergens: ["Lait"] },
+            ]},
+          ]},
+          checklists: {
+            opening: ["Allumer les équipements (plaques, fours, café)","Vérifier températures buffet chaud (min 63°C)","Mise en place nappe et couverts","Remplir les contenants (jus, lait, confitures)","Vérifier stock viennoiseries (livraison 5h30)","Allumer l'éclairage ambiance salle","Briefing équipe 6h15"],
+            closing: ["Ranger et filmer tous les aliments","Nettoyer et désinfecter le buffet","Vider et nettoyer les machines à café","Relever les températures frigo","Compter les couverts manquants","Passer la commande du lendemain","Rapport de service au F&B Manager"]
+          }
+        },
+        restaurant1: {
+          label: "Restaurant Le Jardin", icon: "🌿", color: "#5C8A6E",
+          info: "Déjeuner 12h-14h30 | Dîner 19h-22h30\nCuisine française contemporaine. Chef : Antoine Mercier.\nCapacité : 60 couverts intérieur + 30 terrasse. Poste : 220.",
+          floorPlan: null,
+          menu: { categories: [
+            { name: "Entrées", items: [
+              { name: "Foie gras de canard", desc: "Chutney de figues, brioche toastée", allergens: ["Gluten","Lait","Œufs"], price: "28€" },
+              { name: "Saint-Jacques poêlées", desc: "Purée de céleri, émulsion citron", allergens: ["Mollusques","Lait"], price: "32€" },
+              { name: "Velouté de saison", desc: "Crème fouettée, huile de truffe", allergens: ["Lait"], price: "18€" },
+            ]},
+            { name: "Plats", items: [
+              { name: "Filet de bœuf Rossini", desc: "Foie gras, sauce Périgueux, pommes sarladaises", allergens: ["Lait","Gluten"], price: "58€" },
+              { name: "Homard thermidor", desc: "Sauce crémée, riz pilaf", allergens: ["Crustacés","Lait","Gluten"], price: "72€" },
+              { name: "Pigeon rôti", desc: "Jus corsé, légumes glacés, gnocchis", allergens: ["Gluten","Lait","Œufs"], price: "46€" },
+            ]},
+            { name: "Desserts", items: [
+              { name: "Soufflé au Grand Marnier", desc: "Crème anglaise vanille Bourbon", allergens: ["Œufs","Lait","Gluten"], price: "18€" },
+              { name: "Tarte Tatin revisitée", desc: "Caramel beurre salé, glace vanille", allergens: ["Gluten","Lait","Œufs"], price: "16€" },
+              { name: "Chariot de fromages", desc: "Sélection affineurs MOF", allergens: ["Lait"], price: "22€" },
+            ]},
+          ]},
+          checklists: {
+            opening: ["Vérification mise en place salle (alignement couverts)","Polissage verrerie et argenterie","Mise en place station sommelier","Vérifier réservations et attribuer les tables","Briefing chef de rang 11h30 / 18h30","Contrôle carte des vins mise à jour","Tester éclairage et musique d'ambiance"],
+            closing: ["Débarrasser et dresser tables pour prochain service","Nettoyage sol et mobilier","Ranger le linge de table","Clôturer les additions et rapport de caisse","Relever no-shows et annulations","Vérifier réservations du lendemain","Transmettre retours clients au chef"]
+          }
+        },
+        restaurant2: {
+          label: "Brasserie L'Atrium", icon: "🏛️", color: "#7B6EA0",
+          info: "Ouvert 7j/7 de 11h à 23h30 — service en continu.\nCuisine bistrot raffinée. Chef : Sandra Petit.\nCapacité : 120 couverts. Poste : 230.",
+          floorPlan: null,
+          menu: { categories: [
+            { name: "Entrées", items: [
+              { name: "Burrata crémeuse", desc: "Tomates héritage, basilic, huile d'olive", allergens: ["Lait"], price: "19€" },
+              { name: "Tartare de bœuf", desc: "Câpres, cornichons, sauce gribiche", allergens: ["Œufs","Moutarde"], price: "24€" },
+              { name: "Soupe à l'oignon gratinée", desc: "Gruyère AOP, croûtons maison", allergens: ["Gluten","Lait"], price: "16€" },
+            ]},
+            { name: "Plats", items: [
+              { name: "Côte de bœuf (2 pers.)", desc: "Sauce béarnaise, frites maison", allergens: ["Lait","Œufs"], price: "89€" },
+              { name: "Risotto aux truffes", desc: "Parmesan 24 mois, copeaux de truffe noire", allergens: ["Lait"], price: "38€" },
+              { name: "Sole meunière", desc: "Beurre noisette, citron, persil plat", allergens: ["Poisson","Lait","Gluten"], price: "42€" },
+            ]},
+            { name: "Desserts", items: [
+              { name: "Paris-Brest", desc: "Praliné noisette, crème mousseline", allergens: ["Gluten","Lait","Œufs","Fruits à coque"], price: "14€" },
+              { name: "Crème brûlée vanille", desc: "Vanille de Madagascar", allergens: ["Lait","Œufs"], price: "12€" },
+              { name: "Profiteroles", desc: "Glace vanille, sauce chocolat chaud", allergens: ["Gluten","Lait","Œufs"], price: "14€" },
+            ]},
+          ]},
+          checklists: {
+            opening: ["Mise en place complète salle (120 couverts)","Vérifier stock bar brasserie","Allumer écrans menu et éclairage","Contrôle propreté terrasse intérieure","Briefing équipe 10h45","Vérifier spéciaux du jour avec la cuisine","Activer les réservations en ligne"],
+            closing: ["Fermeture caisse et Z de caisse","Nettoyage complet salle et bar","Mise sous film des denrées bar","Éteindre équipements et écrans","Vérifier portes et sécurité","Rapport incidents au manager de nuit","Préparer brief équipe du matin"]
+          }
+        },
+        bar: {
+          label: "Bar Le Cristal", icon: "🍸", color: "#C0736A",
+          info: "Ouvert de 11h à 2h du matin.\nBar à cocktails signature et cave à whisky.\nBarman en chef : Léo Fabre — poste 240.",
+          floorPlan: null,
+          menu: { categories: [
+            { name: "Cocktails Signature", items: [
+              { name: "Palace Sour", desc: "Cognac VSOP, citron yuzu, blanc d'œuf, eau de rose", allergens: ["Œufs"], price: "22€" },
+              { name: "Garden Spritz", desc: "Gin botanique, elderflower, concombre, prosecco", allergens: ["Sulfites"], price: "19€" },
+              { name: "Midnight Negroni", desc: "Mezcal, Campari fumé, vermouth rouge infusé cacao", allergens: ["Sulfites"], price: "24€" },
+            ]},
+            { name: "Vins au Verre", items: [
+              { name: "Champagne Maison", desc: "Blanc de blancs, notes briochées et agrumes", allergens: ["Sulfites"], price: "22€" },
+              { name: "Burgundy Pinot Noir", desc: "Gevrey-Chambertin Village 2021", allergens: ["Sulfites"], price: "28€" },
+              { name: "Sancerre Blanc", desc: "Domaine Henri Bourgeois 2022", allergens: ["Sulfites"], price: "18€" },
+            ]},
+            { name: "Mocktails & Soft", items: [
+              { name: "Jardin Frais", desc: "Eau de concombre, citron vert, menthe, gingembre", allergens: [], price: "12€" },
+              { name: "Palais Rose", desc: "Eau de rose, framboise, limonade artisanale", allergens: [], price: "12€" },
+              { name: "Eau minérale", desc: "Evian, Perrier, San Pellegrino", allergens: [], price: "8€" },
+            ]},
+          ]},
+          checklists: {
+            opening: ["Inventaire spirits et signaler manques","Préparer les sirops et purées du jour","Vérifier congélateur glace et bloc","Nettoyer et polir verres et shakers","Mise en place garnishes (citrons, herbes, etc.)","Vérifier liste cocktails saisonniers","Briefing bar 10h45"],
+            closing: ["Inventaire de clôture et saisie","Vider et nettoyer les pistolets à pression","Ranger et filmer tous les fruits et garnishes","Nettoyage complet comptoir et sol","Clôture caisse bar","Rapport consommation au manager","Verrouillage cave à vins"]
+          }
+        },
+        banquet: {
+          label: "Banquets & Séminaires", icon: "🎊", color: "#A07840",
+          info: "Salles : Versailles (200p), Fontainebleau (80p), Chambord (40p).\nCoordination : Sophie Laurent — poste 250.\nSetup minimum 2h avant l'événement.",
+          floorPlan: null,
+          menu: { categories: [
+            { name: "Menus Cocktail", items: [
+              { name: "Canapés classiques", desc: "Saumon fumé, foie gras, bruschetta, mini-quiches", allergens: ["Gluten","Lait","Œufs","Poisson"], price: "45€/pers" },
+              { name: "Canapés végétariens", desc: "Houmous, légumes rôtis, fromages fins", allergens: ["Gluten","Lait","Sésame"], price: "38€/pers" },
+            ]},
+            { name: "Menus Assis", items: [
+              { name: "Menu Prestige 3 services", desc: "Entrée, plat, dessert — accord mets-vins inclus", allergens: ["Voir fiche détaillée"], price: "120€/pers" },
+              { name: "Menu Business 2 services", desc: "Plat et dessert, eau et café inclus", allergens: ["Voir fiche détaillée"], price: "65€/pers" },
+              { name: "Menu Gala 5 services", desc: "Amuse, entrée, fish, viande, dessert + sommelier", allergens: ["Voir fiche détaillée"], price: "195€/pers" },
+            ]},
+            { name: "Coffee Breaks", items: [
+              { name: "Pause classique", desc: "Café, thé, viennoiseries, jus", allergens: ["Gluten","Lait"], price: "18€/pers" },
+              { name: "Pause gourmande", desc: "Café, thé, mini-pâtisseries, fruits frais", allergens: ["Gluten","Lait","Œufs","Fruits à coque"], price: "24€/pers" },
+            ]},
+          ]},
+          checklists: {
+            opening: ["Vérifier BEO (Banquet Event Order) du jour","Contrôle setup selon plan de table client","Test sono, vidéoprojecteur, microphones","Mise en place signalétique et noms de table","Briefing équipe banquet 2h avant","Confirmer nombre définitif avec client","Valider allergènes avec la cuisine"],
+            closing: ["Débarrasser et inventaire matériel","Rapport pertes et casses","Reset salle pour prochain événement","Facturation compléments au client","Rapport qualité à la coordinatrice","Archiver le BEO signé","Nettoyage complet des salles"]
+          }
+        },
+        roomservice: {
+          label: "Room Service", icon: "🛎️", color: "#6A8FAF",
+          info: "Service 24h/24 — 7j/7.\nCommandes via téléphone poste 0 ou application client.\nDélai annoncé : 30 min (standard), 45 min (gala).\nResponsable : Marc Leblanc — poste 260.",
+          floorPlan: null,
+          menu: { categories: [
+            { name: "Toute la journée", items: [
+              { name: "Club Sandwich Palace", desc: "Poulet rôti, bacon, avocat, tomate, frites maison", allergens: ["Gluten","Lait","Œufs","Moutarde"], price: "32€" },
+              { name: "Burger du Chef", desc: "Bœuf charolais, cheddar affiné, sauce secrète", allergens: ["Gluten","Lait","Œufs","Moutarde"], price: "36€" },
+              { name: "Salade César revisitée", desc: "Romaine, anchois, parmesan, croûtons dorés", allergens: ["Gluten","Lait","Poisson","Œufs"], price: "28€" },
+            ]},
+            { name: "Nuit (23h - 7h)", items: [
+              { name: "Soupe de légumes du moment", desc: "Légumes de saison, croutons, crème", allergens: ["Gluten","Lait"], price: "18€" },
+              { name: "Plateau fromages et charcuterie", desc: "Sélection de 3 fromages, jambon ibérique, cornichons", allergens: ["Lait","Gluten"], price: "34€" },
+              { name: "Plateau sucré nuit", desc: "Macarons, financiers, chocolats de la maison", allergens: ["Gluten","Lait","Œufs","Fruits à coque"], price: "24€" },
+            ]},
+            { name: "Boissons", items: [
+              { name: "Bouteille de vin", desc: "Sélection sommelier selon disponibilité", allergens: ["Sulfites"], price: "À partir de 45€" },
+              { name: "Champagne en chambre", desc: "Mise en seau, verres cristal", allergens: ["Sulfites"], price: "À partir de 95€" },
+              { name: "Boissons chaudes", desc: "Café, thé, infusions", allergens: ["Lait (option)"], price: "8€" },
+            ]},
+          ]},
+          checklists: {
+            opening: ["Contrôle stock plateaux et vaisselle","Vérifier chariots en état (roulettes, nappes)","Vérifier imprimante commandes fonctionnelle","Briefing équipe RS 7h00","Confirmer disponibilités cuisine","Vérifier étages en service (DND, NDS)","Test téléphone RS entrant"],
+            closing: ["Rapatrier tous les plateaux des couloirs","Inventaire vaisselle et signaler manques","Nettoyer et ranger les chariots","Clôture commandes et rapport","Transmission consignes équipe de nuit","Vérifier frigo RS (températures)","Rapport incidents au manager"]
+          }
+        }
+      }
+    };
+
+    function App() {
+      const [data, setData] = useState(INITIAL_DATA);
+      const [view, setView] = useState("home");
+      const [activeDept, setActiveDept] = useState(null);
+      const [deptTab, setDeptTab] = useState("info");
+      const [checklistType, setChecklistType] = useState("opening");
+      const [checked, setChecked] = useState({});
+      const [adminTab, setAdminTab] = useState("general");
+      const [adminDept, setAdminDept] = useState("breakfast");
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [adminPassword, setAdminPassword] = useState("");
+      const [adminError, setAdminError] = useState(false);
+      const [expandedItem, setExpandedItem] = useState(null);
+      const fileInputRef = useRef(null);
+
+      const dept = activeDept ? data.departments[activeDept] : null;
+      const gold = "#C9A84C";
+      const bg = "#0A0805";
+      const surface = "rgba(255,255,255,0.04)";
+      const border = "rgba(201,168,76,0.15)";
+
+      const toggleCheck = (key) => setChecked(p => ({ ...p, [key]: !p[key] }));
+
+      const handleAdminLogin = () => {
+        if (adminPassword === "manager2024") { setIsAdmin(true); setAdminError(false); setAdminPassword(""); }
+        else setAdminError(true);
+      };
+
+      const handleImageUpload = (e, deptKey) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => setData(d => ({ ...d, departments: { ...d.departments, [deptKey]: { ...d.departments[deptKey], floorPlan: ev.target.result } } }));
+        reader.readAsDataURL(file);
+      };
+
+      const updateDeptInfo = (k, v) => setData(d => ({ ...d, departments: { ...d.departments, [k]: { ...d.departments[k], info: v } } }));
+      const updateGeneralInfo = (v) => setData(d => ({ ...d, general: { ...d.general, info: v } }));
+      const addAnnouncement = () => setData(d => ({ ...d, general: { ...d.general, announcements: [{ title: "Nouveau titre", body: "Contenu" }, ...d.general.announcements] } }));
+      const updateAnnouncement = (i, f, v) => setData(d => { const a = [...d.general.announcements]; a[i] = { ...a[i], [f]: v }; return { ...d, general: { ...d.general, announcements: a } }; });
+      const deleteAnnouncement = (i) => setData(d => ({ ...d, general: { ...d.general, announcements: d.general.announcements.filter((_, idx) => idx !== i) } }));
+      const addChecklistItem = (dk, t) => setData(d => { const dep = { ...d.departments[dk] }; dep.checklists = { ...dep.checklists, [t]: [...dep.checklists[t], "Nouveau point"] }; return { ...d, departments: { ...d.departments, [dk]: dep } }; });
+      const updateChecklistItem = (dk, t, i, v) => setData(d => { const dep = { ...d.departments[dk] }; const a = [...dep.checklists[t]]; a[i] = v; dep.checklists = { ...dep.checklists, [t]: a }; return { ...d, departments: { ...d.departments, [dk]: dep } }; });
+      const deleteChecklistItem = (dk, t, i) => setData(d => { const dep = { ...d.departments[dk] }; dep.checklists = { ...dep.checklists, [t]: dep.checklists[t].filter((_, idx) => idx !== i) }; return { ...d, departments: { ...d.departments, [dk]: dep } }; });
+      const addMenuItem = (dk, ci) => setData(d => { const dep = { ...d.departments[dk] }; const cats = dep.menu.categories.map((c, i) => i === ci ? { ...c, items: [...c.items, { name: "Nouveau plat", desc: "Description", allergens: [], price: "" }] } : c); dep.menu = { ...dep.menu, categories: cats }; return { ...d, departments: { ...d.departments, [dk]: dep } }; });
+      const updateMenuItem = (dk, ci, ii, f, v) => setData(d => { const dep = { ...d.departments[dk] }; const cats = dep.menu.categories.map((c, cIdx) => cIdx !== ci ? c : { ...c, items: c.items.map((it, iIdx) => iIdx !== ii ? it : { ...it, [f]: f === "allergens" ? v.split(",").map(s => s.trim()).filter(Boolean) : v }) }); dep.menu = { ...dep.menu, categories: cats }; return { ...d, departments: { ...d.departments, [dk]: dep } }; });
+      const deleteMenuItem = (dk, ci, ii) => setData(d => { const dep = { ...d.departments[dk] }; const cats = dep.menu.categories.map((c, cIdx) => cIdx !== ci ? c : { ...c, items: c.items.filter((_, iIdx) => iIdx !== ii) }); dep.menu = { ...dep.menu, categories: cats }; return { ...d, departments: { ...d.departments, [dk]: dep } }; });
+
+      const pill = (color, active) => ({ padding: "6px 16px", borderRadius: 20, fontSize: 12, fontWeight: 600, letterSpacing: 0.5, cursor: "pointer", border: "none", background: active ? color : "rgba(255,255,255,0.06)", color: active ? "#0A0805" : "#999" });
+      const cardStyle = (color = gold) => ({ background: surface, border: `1px solid ${color}28`, borderRadius: 14, padding: "16px 18px", marginBottom: 12 });
+      const inputStyle = { width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#E8DCC8", padding: "10px 12px", fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", outline: "none" };
+      const btnStyle = (color = gold, outline = false) => ({ padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700, letterSpacing: 0.5, cursor: "pointer", background: outline ? "transparent" : `linear-gradient(135deg, ${color}, ${color}99)`, border: outline ? `1px solid ${color}` : "none", color: outline ? color : "#0A0805" });
+      const wrap = { fontFamily: "'Cormorant Garamond', Georgia, serif", background: bg, minHeight: "100vh", color: "#E8DCC8", maxWidth: 480, margin: "0 auto", paddingBottom: 80 };
+      const bottomNav = { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "rgba(8,6,4,0.97)", backdropFilter: "blur(20px)", borderTop: `1px solid ${border}`, display: "flex", padding: "10px 0 16px", zIndex: 10 };
+
+      // ADMIN LOGIN
+      if (view === "admin" && !isAdmin) return (
+        <div style={{ ...wrap, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🔐</div>
+          <div style={{ fontSize: 11, letterSpacing: 4, color: gold, textTransform: "uppercase", marginBottom: 8 }}>Espace Manager</div>
+          <h2 style={{ margin: "0 0 28px", fontSize: 22 }}>Connexion requise</h2>
+          <input type="password" placeholder="Mot de passe manager" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAdminLogin()} style={{ ...inputStyle, marginBottom: 12, textAlign: "center" }} />
+          {adminError && <div style={{ color: "#C0736A", fontSize: 13, marginBottom: 12 }}>Mot de passe incorrect</div>}
+          <button onClick={handleAdminLogin} style={{ ...btnStyle(gold), width: "100%", padding: 14, fontSize: 15 }}>Accéder à l'espace manager</button>
+          <button onClick={() => setView("home")} style={{ ...btnStyle(gold, true), width: "100%", padding: 12, marginTop: 10 }}>← Retour</button>
+          <div style={{ marginTop: 20, fontSize: 12, color: "#555" }}>Mot de passe démo : manager2024</div>
+        </div>
+      );
+
+      // ADMIN PANEL
+      if (view === "admin" && isAdmin) {
+        const d = data.departments[adminDept];
+        return (
+          <div style={wrap}>
+            <div style={{ padding: "28px 24px 16px", borderBottom: `1px solid ${border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div><div style={{ fontSize: 11, letterSpacing: 4, color: gold, textTransform: "uppercase" }}>Manager</div><div style={{ fontSize: 20, fontWeight: 700 }}>Administration F&B</div></div>
+              <button onClick={() => { setIsAdmin(false); setView("home"); }} style={{ ...btnStyle(gold, true), padding: "8px 14px", fontSize: 12 }}>Déconnexion</button>
+            </div>
+            <div style={{ padding: "12px 24px", borderBottom: `1px solid ${border}`, display: "flex", gap: 8, overflowX: "auto" }}>
+              {["general","departments"].map(t => <button key={t} onClick={() => setAdminTab(t)} style={pill(gold, adminTab === t)}>{t === "general" ? "🏨 Général" : "🍽️ Départements"}</button>)}
+            </div>
+            <div style={{ padding: 24 }}>
+              {adminTab === "general" && (
+                <div>
+                  <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 8 }}>Informations Générales</div>
+                  <textarea value={data.general.info} onChange={e => updateGeneralInfo(e.target.value)} rows={5} style={{ ...inputStyle, resize: "vertical", marginBottom: 20 }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase" }}>Annonces</div>
+                    <button onClick={addAnnouncement} style={btnStyle(gold)}>+ Ajouter</button>
+                  </div>
+                  {data.general.announcements.map((ann, i) => (
+                    <div key={i} style={{ ...cardStyle(), marginBottom: 12 }}>
+                      <input value={ann.title} onChange={e => updateAnnouncement(i, "title", e.target.value)} style={{ ...inputStyle, marginBottom: 8, fontWeight: 700 }} placeholder="Titre" />
+                      <textarea value={ann.body} onChange={e => updateAnnouncement(i, "body", e.target.value)} rows={2} style={{ ...inputStyle, resize: "none", marginBottom: 8 }} placeholder="Contenu" />
+                      <button onClick={() => deleteAnnouncement(i)} style={{ ...btnStyle("#C0736A", true), fontSize: 12, padding: "6px 12px" }}>Supprimer</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {adminTab === "departments" && (
+                <div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
+                    {Object.entries(data.departments).map(([key, dep]) => <button key={key} onClick={() => setAdminDept(key)} style={pill(dep.color, adminDept === key)}>{dep.icon} {dep.label.split(" ")[0]}</button>)}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: d.color, marginBottom: 16 }}>{d.icon} {d.label}</div>
+                  <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 8 }}>Informations</div>
+                  <textarea value={d.info} onChange={e => updateDeptInfo(adminDept, e.target.value)} rows={4} style={{ ...inputStyle, resize: "vertical", marginBottom: 20 }} />
+                  <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 8 }}>Plan de Salle</div>
+                  <div style={{ ...cardStyle(d.color), marginBottom: 20 }}>
+                    {d.floorPlan ? <img src={d.floorPlan} alt="Plan" style={{ width: "100%", borderRadius: 8, marginBottom: 10 }} /> : <div style={{ textAlign: "center", color: "#666", padding: "20px 0" }}>Aucun plan uploadé</div>}
+                    <input type="file" accept="image/*" style={{ display: "none" }} ref={fileInputRef} onChange={e => handleImageUpload(e, adminDept)} />
+                    <button onClick={() => fileInputRef.current && fileInputRef.current.click()} style={{ ...btnStyle(d.color), width: "100%", marginTop: 8 }}>📁 {d.floorPlan ? "Changer le plan" : "Uploader un plan"}</button>
+                  </div>
+                  <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 12 }}>Carte / Menu</div>
+                  {d.menu.categories.map((cat, ci) => (
+                    <div key={ci} style={{ ...cardStyle(d.color), marginBottom: 16 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: d.color, marginBottom: 12 }}>{cat.name}</div>
+                      {cat.items.map((item, ii) => (
+                        <div key={ii} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                          <input value={item.name} onChange={e => updateMenuItem(adminDept, ci, ii, "name", e.target.value)} style={{ ...inputStyle, marginBottom: 6, fontWeight: 700 }} placeholder="Nom" />
+                          <input value={item.desc} onChange={e => updateMenuItem(adminDept, ci, ii, "desc", e.target.value)} style={{ ...inputStyle, marginBottom: 6 }} placeholder="Description" />
+                          <input value={item.price || ""} onChange={e => updateMenuItem(adminDept, ci, ii, "price", e.target.value)} style={{ ...inputStyle, marginBottom: 6 }} placeholder="Prix" />
+                          <input value={item.allergens.join(", ")} onChange={e => updateMenuItem(adminDept, ci, ii, "allergens", e.target.value)} style={{ ...inputStyle, marginBottom: 6 }} placeholder="Allergènes (virgule)" />
+                          <button onClick={() => deleteMenuItem(adminDept, ci, ii)} style={{ ...btnStyle("#C0736A", true), fontSize: 11, padding: "5px 10px" }}>Supprimer</button>
+                        </div>
+                      ))}
+                      <button onClick={() => addMenuItem(adminDept, ci)} style={{ ...btnStyle(d.color, true), fontSize: 12, width: "100%" }}>+ Ajouter un plat</button>
+                    </div>
+                  ))}
+                  {["opening","closing"].map(type => (
+                    <div key={type} style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 10 }}>Checklist {type === "opening" ? "Ouverture" : "Fermeture"}</div>
+                      {d.checklists[type].map((item, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                          <input value={item} onChange={e => updateChecklistItem(adminDept, type, i, e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+                          <button onClick={() => deleteChecklistItem(adminDept, type, i)} style={{ ...btnStyle("#C0736A", true), padding: "8px 12px", flexShrink: 0 }}>✕</button>
+                        </div>
+                      ))}
+                      <button onClick={() => addChecklistItem(adminDept, type)} style={{ ...btnStyle(d.color, true), fontSize: 12, width: "100%" }}>+ Ajouter</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={bottomNav}><button onClick={() => setView("home")} style={{ flex: 1, background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 12, letterSpacing: 1 }}>← Staff</button></div>
+          </div>
+        );
+      }
+
+      // DEPT DETAIL
+      if (view === "dept" && dept) {
+        const checkKey = (i) => `${activeDept}-${checklistType}-${i}`;
+        const total = dept.checklists[checklistType].length;
+        const done = dept.checklists[checklistType].filter((_, i) => checked[checkKey(i)]).length;
+        return (
+          <div style={wrap}>
+            <div style={{ background: `linear-gradient(135deg, ${dept.color}25, ${bg})`, padding: "28px 24px 20px", borderBottom: `1px solid ${dept.color}30` }}>
+              <button onClick={() => { setView("home"); setActiveDept(null); }} style={{ background: "none", border: "none", color: gold, cursor: "pointer", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", padding: 0, marginBottom: 16 }}>← Retour</button>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: `${dept.color}22`, border: `1px solid ${dept.color}55`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>{dept.icon}</div>
+                <div><div style={{ fontSize: 11, letterSpacing: 3, color: dept.color, textTransform: "uppercase" }}>Département F&B</div><div style={{ fontSize: 22, fontWeight: 700 }}>{dept.label}</div></div>
+              </div>
+            </div>
+            <div style={{ padding: "12px 24px", borderBottom: `1px solid ${border}`, display: "flex", gap: 8, overflowX: "auto" }}>
+              {[["info","ℹ️ Infos"],["floorplan","🗺️ Plan"],["menu","🍽️ Carte"],["checklist","✓ Checklist"]].map(([t, label]) => <button key={t} onClick={() => setDeptTab(t)} style={pill(dept.color, deptTab === t)}>{label}</button>)}
+            </div>
+            <div style={{ padding: 24 }}>
+              {deptTab === "info" && (
+                <div style={cardStyle(dept.color)}>
+                  <div style={{ fontSize: 11, letterSpacing: 3, color: dept.color, textTransform: "uppercase", marginBottom: 10 }}>Informations</div>
+                  <p style={{ margin: 0, fontSize: 15, lineHeight: 1.9, color: "#C8B896", whiteSpace: "pre-line" }}>{dept.info}</p>
+                </div>
+              )}
+              {deptTab === "floorplan" && (
+                dept.floorPlan
+                  ? <img src={dept.floorPlan} alt="Plan de salle" style={{ width: "100%", borderRadius: 12, border: `1px solid ${dept.color}33` }} />
+                  : <div style={{ textAlign: "center", padding: "60px 0" }}><div style={{ fontSize: 48, marginBottom: 16 }}>🗺️</div><div style={{ fontSize: 16, color: "#666" }}>Aucun plan disponible</div><div style={{ fontSize: 13, color: "#444", marginTop: 8 }}>Uploadez un plan depuis l'espace Admin</div></div>
+              )}
+              {deptTab === "menu" && dept.menu.categories.map((cat, ci) => (
+                <div key={ci} style={{ marginBottom: 28 }}>
+                  <div style={{ fontSize: 11, letterSpacing: 3, color: dept.color, textTransform: "uppercase", marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${dept.color}30` }}>{cat.name}</div>
+                  {cat.items.map((item, ii) => {
+                    const key = `${ci}-${ii}`;
+                    return (
+                      <button key={ii} onClick={() => setExpandedItem(expandedItem === key ? null : key)}
+                        style={{ width: "100%", background: expandedItem === key ? `${dept.color}12` : surface, border: `1px solid ${expandedItem === key ? dept.color + "44" : "rgba(255,255,255,0.06)"}`, borderRadius: 12, padding: "14px 16px", cursor: "pointer", textAlign: "left", marginBottom: 8, display: "block" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: "#F0E8D8", marginBottom: 4 }}>{item.name}</div>
+                            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>{item.desc}</div>
+                            {expandedItem === key && item.allergens.length > 0 && (
+                              <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                {item.allergens.map((a, ai) => <span key={ai} style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "rgba(192,115,106,0.15)", border: "1px solid rgba(192,115,106,0.4)", color: "#C0736A" }}>{a}</span>)}
+                              </div>
+                            )}
+                          </div>
+                          {item.price && <div style={{ fontSize: 15, fontWeight: 700, color: dept.color, marginLeft: 12, flexShrink: 0 }}>{item.price}</div>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+              {deptTab === "checklist" && (
+                <div>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                    {[["opening","☀️ Ouverture"],["closing","🌙 Fermeture"]].map(([t, label]) => <button key={t} onClick={() => setChecklistType(t)} style={pill(dept.color, checklistType === t)}>{label}</button>)}
+                  </div>
+                  <div style={{ ...cardStyle(dept.color), marginBottom: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}><span style={{ fontSize: 13 }}>Progression</span><span style={{ fontSize: 18, fontWeight: 700, color: dept.color }}>{done}/{total}</span></div>
+                    <div style={{ height: 5, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: `${total ? (done / total) * 100 : 0}%`, background: `linear-gradient(90deg, ${dept.color}, ${dept.color}88)`, transition: "width 0.3s" }} /></div>
+                  </div>
+                  {dept.checklists[checklistType].map((item, i) => {
+                    const k = checkKey(i);
+                    return (
+                      <button key={i} onClick={() => toggleCheck(k)} style={{ display: "flex", alignItems: "center", gap: 14, background: checked[k] ? `${dept.color}12` : surface, border: `1px solid ${checked[k] ? dept.color + "44" : "rgba(255,255,255,0.06)"}`, borderRadius: 10, padding: "13px 14px", cursor: "pointer", textAlign: "left", width: "100%", marginBottom: 8 }}>
+                        <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, border: `2px solid ${checked[k] ? dept.color : "rgba(255,255,255,0.2)"}`, background: checked[k] ? dept.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#0A0805", fontWeight: 700 }}>{checked[k] ? "✓" : ""}</div>
+                        <span style={{ fontSize: 14, color: checked[k] ? "#666" : "#C8B896", textDecoration: checked[k] ? "line-through" : "none", lineHeight: 1.5 }}>{item}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div style={bottomNav}><button onClick={() => { setView("home"); setActiveDept(null); }} style={{ flex: 1, background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 12, letterSpacing: 1 }}>← Accueil</button></div>
+          </div>
+        );
+      }
+
+      // GENERAL VIEW
+      if (view === "general") return (
+        <div style={wrap}>
+          <div style={{ padding: "28px 24px 16px", borderBottom: `1px solid ${border}` }}>
+            <button onClick={() => setView("home")} style={{ background: "none", border: "none", color: gold, cursor: "pointer", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", padding: 0, marginBottom: 16 }}>← Retour</button>
+            <div style={{ fontSize: 11, letterSpacing: 4, color: gold, textTransform: "uppercase" }}>F&B</div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>Informations Générales</div>
+          </div>
+          <div style={{ padding: 24 }}>
+            <div style={{ ...cardStyle(), marginBottom: 24 }}>
+              <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 10 }}>Note du F&B Manager</div>
+              <p style={{ margin: 0, fontSize: 15, lineHeight: 1.9, color: "#C8B896", whiteSpace: "pre-line" }}>{data.general.info}</p>
+            </div>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 12 }}>Plannings</div>
+            {data.general.schedules.map((s, i) => (
+              <div key={i} style={{ ...cardStyle(), marginBottom: 12 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{s.name}</div>
+                <pre style={{ margin: 0, fontSize: 13, color: "#C8B896", whiteSpace: "pre-wrap", fontFamily: "inherit", lineHeight: 1.8 }}>{s.content}</pre>
+              </div>
+            ))}
+            <div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 12, marginTop: 24 }}>Annonces</div>
+            {data.general.announcements.map((ann, i) => (
+              <div key={i} style={{ background: `${gold}10`, border: `1px solid ${gold}33`, borderRadius: 14, padding: "16px 18px", marginBottom: 12 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: gold, marginBottom: 6 }}>{ann.title}</div>
+                <p style={{ margin: 0, fontSize: 14, color: "#C8B896", lineHeight: 1.7 }}>{ann.body}</p>
+              </div>
+            ))}
+          </div>
+          <div style={bottomNav}><button onClick={() => setView("home")} style={{ flex: 1, background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 12, letterSpacing: 1 }}>← Accueil</button></div>
+        </div>
+      );
+
+      // HOME
+      return (
+        <div style={wrap}>
+          <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "radial-gradient(ellipse at 20% 0%, #1A1208 0%, #0A0805 60%)", pointerEvents: "none" }} />
+          <div style={{ position: "relative", zIndex: 2, padding: "32px 24px 20px", borderBottom: `1px solid ${border}` }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 42, height: 42, background: `linear-gradient(135deg, ${gold}, #8B6534)`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚜️</div>
+                <div><div style={{ fontSize: 11, letterSpacing: 4, color: gold, textTransform: "uppercase" }}>Grand Hôtel Palace</div><div style={{ fontSize: 20, fontWeight: 700 }}>F&B Operations</div></div>
+              </div>
+              <button onClick={() => setView("admin")} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${border}`, borderRadius: 10, padding: "8px 12px", cursor: "pointer", fontSize: 18 }}>⚙️</button>
+            </div>
+          </div>
+          <div style={{ position: "relative", zIndex: 2, padding: "24px 24px 0" }}>
+            <button onClick={() => setView("general")} style={{ width: "100%", background: `linear-gradient(135deg, ${gold}18, transparent)`, border: `1px solid ${gold}44`, borderRadius: 16, padding: "18px 20px", cursor: "pointer", textAlign: "left", marginBottom: 28, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div><div style={{ fontSize: 11, letterSpacing: 3, color: gold, textTransform: "uppercase", marginBottom: 6 }}>Général</div><div style={{ fontSize: 17, fontWeight: 700 }}>Plannings & Annonces</div><div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>{data.general.announcements.length} annonce(s) active(s)</div></div>
+              <div style={{ fontSize: 28 }}>📋</div>
+            </button>
+            <div style={{ fontSize: 11, letterSpacing: 4, color: gold, textTransform: "uppercase", marginBottom: 16 }}>Départements F&B</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {Object.entries(data.departments).map(([key, d]) => (
+                <button key={key} onClick={() => { setActiveDept(key); setDeptTab("info"); setView("dept"); }} style={{ display: "flex", alignItems: "center", gap: 14, background: surface, border: `1px solid ${d.color}22`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: `${d.color}20`, border: `1px solid ${d.color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{d.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#F0E8D8" }}>{d.label}</div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                      <span style={{ fontSize: 11, color: "#666" }}>{d.menu.categories.reduce((a, c) => a + c.items.length, 0)} plats</span>
+                      <span style={{ fontSize: 11, color: d.color }}>• {d.checklists.opening.length} points ouverture</span>
+                    </div>
+                  </div>
+                  <div style={{ color: "#444", fontSize: 20 }}>›</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={bottomNav}>
+            <button style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}><span style={{ fontSize: 18 }}>🍽️</span><span style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: gold }}>F&B</span></button>
+            <button onClick={() => setView("admin")} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}><span style={{ fontSize: 18 }}>⚙️</span><span style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "#555" }}>Admin</span></button>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
